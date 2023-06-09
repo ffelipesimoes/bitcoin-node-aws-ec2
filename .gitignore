@@ -1,0 +1,27 @@
+# Terraform
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# Ansible
+*.retry
+*.pyc
+*.pyo
+__pycache__/
+*.log
+*.log.*
+*.swp
+*.swo
+*.swl
+*.swm
+*.swn
+*.swk
+
+# Local Ansible roles and collections
+roles/
+collections/
+
+# Other files
+.DS_Store
