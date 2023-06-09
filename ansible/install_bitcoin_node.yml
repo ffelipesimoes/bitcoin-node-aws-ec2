@@ -1,0 +1,63 @@
+---
+- name: Install and configure Bitcoin node using Docker
+  hosts: nodes
+  become: yes
+  tasks:
+    - name: Check which package manager to use
+      ansible.builtin.setup:
+
+    - name: Update all packages (apt)
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        force_apt_get: yes
+        update_cache: yes
+      when: "'apt' in ansible_facts.pkg_mgr"
+
+    - name: Install Docker (apt)
+      ansible.builtin.apt:
+        name: docker.io
+        state: latest
+        update_cache: yes
+      when: "'apt' in ansible_facts.pkg_mgr"
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull lncm/bitcoind:v25.0 Docker image
+      ansible.builtin.docker_image:
+        name: lncm/bitcoind:v25.0
+        source: pull
+
+    - name: Check if the bitcoind container exists
+      ansible.builtin.docker_container_info:
+        name: bitcoind
+      register: container_info
+
+    - name: Remove existing bitcoind container if present
+      ansible.builtin.docker_container:
+        name: bitcoind
+        state: absent
+      when: container_info.exists
+
+    - name: Run lncm/bitcoind:v25.0 container
+      ansible.builtin.docker_container:
+        name: bitcoind
+        image: lncm/bitcoind:v25.0
+        state: started
+        restart_policy: always
+        exposed_ports:
+          - "8332"
+          - "8333"
+          - "28332"
+          - "28333"
+        ports:
+          - "8332:8332"
+          - "8333:8333"
+          - "28332:28332"
+          - "28333:28333"
+        volumes:
+          - "bitcoin-data:/root/.bitcoin"
